@@ -1,23 +1,41 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { Message } from "../types.ts";
+import { Message } from "../types";
 
 export const queryGeminiAboutUser = async (userPrompt: string): Promise<Message> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Directly initialize GoogleGenAI with process.env.API_KEY as per guidelines.
+  // We assume this variable is pre-configured and accessible.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Information request about GitHub user 'boywithdv': ${userPrompt}`,
+      // Using gemini-3-pro-preview for complex technical reasoning and software architecture tasks.
+      model: "gemini-3-pro-preview",
+      contents: `User Query regarding boywithdv: ${userPrompt}`,
       config: {
-        systemInstruction: "You are the personal AI assistant for 'boywithdv'. boywithdv is a premier software engineer specializing in mobile app development with Flutter and Dart. He is an expert in creating high-performance, cross-platform applications with beautiful UIs and solid architecture (BLoC, Riverpod, Clean Architecture). Use Google Search to find up-to-date details from his GitHub profile (https://github.com/boywithdv). Always present him as a Flutter specialist. Keep answers professional, concise, and aligned with a dark-themed aesthetic. Cite sources when possible.",
+        systemInstruction: `You are the specialized AI for 'boywithdv' (GitHub: https://github.com/boywithdv).
+          CORE PERSONA:
+          - boywithdv is a Senior Flutter & Dart Engineer.
+          - Expert in Cross-Platform Mobile Architecture, Clean Architecture, BLoC, and Riverpod.
+          - Passionate about high-performance UI and natively compiled applications.
+          - Tone: Professional, technical, efficient. Use developer terminology.
+          
+          CAPABILITIES:
+          - Use Google Search to retrieve current repository status and project details from his GitHub.
+          - If information is missing, provide logical assumptions based on common Flutter developer workflows.
+          - Always cite sources for project data.`,
         tools: [{ googleSearch: {} }],
       },
     });
 
-    const text = response.text || "I couldn't find specific details on that right now.";
+    // Access the .text property directly (not a method) as per guidelines.
+    const text = response.text || "I was unable to process the query. No output generated.";
+    
+    // Extract grounding metadata for web sources when using the googleSearch tool.
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-    const sources = groundingChunks?.map((chunk: any) => chunk) || [];
+    // Map grounding chunks to the sources expected by the UI. 
+    // They are typically in the format [{ "web": { "uri": "...", "title": "..." } }, ...].
+    const sources = (groundingChunks as { web: { uri: string; title: string } }[]) || [];
 
     return {
       role: 'assistant',
@@ -28,7 +46,7 @@ export const queryGeminiAboutUser = async (userPrompt: string): Promise<Message>
     console.error("Gemini API Error:", error);
     return {
       role: 'assistant',
-      text: "I'm having trouble connecting to my knowledge base. Please try again in a moment."
+      text: "ERROR: Communication timeout with neural engine. Please check your network."
     };
   }
 };

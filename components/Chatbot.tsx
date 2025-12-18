@@ -1,12 +1,11 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { queryGeminiAboutUser } from '../services/geminiService.ts';
-import { Message } from '../types.ts';
+import { queryGeminiAboutUser } from '../services/geminiService';
+import { Message } from '../types';
 
 const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', text: "Hello! I'm the boywithdv AI assistant. I specialize in Flutter development and cross-platform architecture. How can I help you today?" }
+    { role: 'assistant', text: "SYSTEM: boywithdv_assistant online. I am ready to answer questions regarding Flutter mobile development, state management, and project architecture. How can I assist you?" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -26,89 +25,85 @@ const Chatbot: React.FC = () => {
     setInput('');
     setIsLoading(true);
 
-    const response = await queryGeminiAboutUser(input);
-    setMessages(prev => [...prev, response]);
-    setIsLoading(false);
+    try {
+      const response = await queryGeminiAboutUser(input);
+      setMessages(prev => [...prev, response]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'assistant', text: "ERROR: Failed to retrieve data from Gemini API. Please verify connectivity." }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="w-full bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[500px]">
-      <div className="p-4 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-          <span className="font-bold text-sm text-slate-200">Portfolio Assistant</span>
+    <div className="w-full bg-[#0d1117] border border-[#30363d] rounded-xl overflow-hidden shadow-2xl flex flex-col h-[600px] font-mono">
+      {/* Header / Title Bar */}
+      <div className="px-4 py-3 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between">
+        <div className="flex gap-2">
+          <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+          <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+          <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
         </div>
-        <button 
-          onClick={() => setMessages([{ role: 'assistant', text: "Chat history cleared. I'm ready for more Flutter questions!" }])}
-          className="text-xs text-slate-500 hover:text-slate-300"
-        >
-          Clear
-        </button>
+        <span className="text-xs text-slate-500 uppercase tracking-widest">boywithdv_terminal — v1.0.0</span>
       </div>
 
       <div 
         ref={scrollRef}
-        className="flex-grow overflow-y-auto p-6 space-y-6 scroll-smooth"
+        className="flex-grow overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800"
       >
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-2xl p-4 ${
-              msg.role === 'user' 
-                ? 'bg-indigo-600 text-white rounded-br-none' 
-                : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none'
-            }`}>
-              <div className="prose prose-invert prose-sm">
-                <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
-              </div>
+          <div key={idx} className="flex flex-col">
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`text-xs font-bold ${msg.role === 'user' ? 'text-indigo-400' : 'text-emerald-400'}`}>
+                {msg.role === 'user' ? '➜ guest@boywithdv' : '➜ assistant@boywithdv'}
+              </span>
+            </div>
+            <div className={`p-3 rounded-lg ${msg.role === 'user' ? 'bg-indigo-500/5 text-slate-200' : 'text-slate-300'}`}>
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
               
               {msg.sources && msg.sources.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-slate-800">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Sources:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {msg.sources.map((s: any, sIdx) => (
-                      s.web && (
-                        <a 
-                          key={sIdx} 
-                          href={s.web.uri} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-[10px] px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded transition-colors truncate max-w-[150px]"
-                        >
-                          {s.web.title || "Link"}
-                        </a>
-                      )
-                    ))}
-                  </div>
+                <div className="mt-4 pt-4 border-t border-[#30363d] flex flex-wrap gap-2">
+                  {msg.sources.map((s: any, sIdx) => (
+                    s.web && (
+                      <a 
+                        key={sIdx} 
+                        href={s.web.uri} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[10px] px-2 py-1 bg-[#161b22] border border-[#30363d] hover:border-indigo-500/50 rounded transition-all flex items-center gap-1"
+                      >
+                        <i className="fas fa-link text-[8px]"></i> {s.web.title || "Reference"}
+                      </a>
+                    )
+                  ))}
                 </div>
               )}
             </div>
           </div>
         ))}
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex gap-2">
-              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-            </div>
+          <div className="flex items-center gap-2 text-indigo-400">
+            <span className="animate-pulse">_</span>
+            <span className="text-xs uppercase tracking-widest">Processing...</span>
           </div>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 bg-slate-900/50 border-t border-slate-800 flex gap-2">
+      <form onSubmit={handleSubmit} className="p-4 bg-[#161b22] border-t border-[#30363d] flex gap-2">
+        <span className="text-indigo-400 flex items-center">$</span>
         <input 
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about Flutter or my background..."
-          className="flex-grow bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+          placeholder="Type your command/query..."
+          className="flex-grow bg-transparent border-none focus:ring-0 text-sm text-slate-200 placeholder:text-slate-600"
         />
         <button 
           type="submit"
           disabled={isLoading}
-          className="w-12 h-12 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl transition-all"
+          className="text-xs font-bold text-slate-500 hover:text-indigo-400 transition-colors uppercase"
         >
-          <i className="fas fa-paper-plane"></i>
+          [ENTER]
         </button>
       </form>
     </div>
