@@ -45,7 +45,7 @@ const App: React.FC = () => {
           <div className="max-w-4xl mx-auto">
              <div className="text-center mb-12">
                <h2 className="text-3xl font-bold mb-4">Portfolio AI Explorer</h2>
-               <p className="text-slate-400">Ask anything about boywithdv's background, skills, or GitHub activity.</p>
+               <p className="text-slate-400">Ask anything about boywithdv's Flutter skills or GitHub activity.</p>
              </div>
              <Chatbot />
           </div>

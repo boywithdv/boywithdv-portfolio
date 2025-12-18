@@ -6,7 +6,7 @@ import { Message } from '../types.ts';
 const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', text: "Hello! I'm the boywithdv AI assistant. I can help you find information about my creator's projects, skills, and open-source contributions. What would you like to know?" }
+    { role: 'assistant', text: "Hello! I'm the boywithdv AI assistant. I specialize in Flutter development and cross-platform architecture. How can I help you today?" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -36,13 +36,13 @@ const Chatbot: React.FC = () => {
       <div className="p-4 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-          <span className="font-bold text-sm">Portfolio Assistant (Powered by Gemini)</span>
+          <span className="font-bold text-sm text-slate-200">Portfolio Assistant</span>
         </div>
         <button 
-          onClick={() => setMessages([{ role: 'assistant', text: "Chat history cleared. How can I assist you?" }])}
+          onClick={() => setMessages([{ role: 'assistant', text: "Chat history cleared. I'm ready for more Flutter questions!" }])}
           className="text-xs text-slate-500 hover:text-slate-300"
         >
-          Clear History
+          Clear
         </button>
       </div>
 
@@ -63,7 +63,7 @@ const Chatbot: React.FC = () => {
               
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-slate-800">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Sources Found:</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Sources:</p>
                   <div className="flex flex-wrap gap-2">
                     {msg.sources.map((s: any, sIdx) => (
                       s.web && (
@@ -74,7 +74,7 @@ const Chatbot: React.FC = () => {
                           rel="noopener noreferrer"
                           className="text-[10px] px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded transition-colors truncate max-w-[150px]"
                         >
-                          {s.web.title || s.web.uri}
+                          {s.web.title || "Link"}
                         </a>
                       )
                     ))}
@@ -100,7 +100,7 @@ const Chatbot: React.FC = () => {
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="What stack does boywithdv use?"
+          placeholder="Ask about Flutter or my background..."
           className="flex-grow bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
         />
         <button 
