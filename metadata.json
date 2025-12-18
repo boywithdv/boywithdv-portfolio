@@ -1,0 +1,5 @@
+{
+  "name": "Boywithdv Portfolio",
+  "description": "A high-performance, dark-themed developer portfolio and AI assistant inspired by the boywithdv GitHub profile, featuring real-time information retrieval via Gemini API.",
+  "requestFramePermissions": []
+}
