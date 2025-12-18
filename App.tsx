@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Projects from './components/Projects';
-import Chatbot from './components/Chatbot';
-import Footer from './components/Footer';
+import Navbar from './components/Navbar.tsx';
+import Hero from './components/Hero.tsx';
+import Projects from './components/Projects.tsx';
+import Chatbot from './components/Chatbot.tsx';
+import Footer from './components/Footer.tsx';
 
 const App: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);

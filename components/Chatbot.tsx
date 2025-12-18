@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { queryGeminiAboutUser } from '../services/geminiService';
-import { Message } from '../types';
+import { queryGeminiAboutUser } from '../services/geminiService.ts';
+import { Message } from '../types.ts';
 
 const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');

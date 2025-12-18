@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { Message } from "../types";
+import { Message } from "../types.ts";
 
 export const queryGeminiAboutUser = async (userPrompt: string): Promise<Message> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
