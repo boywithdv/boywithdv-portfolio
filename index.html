@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="./">
+    <!-- GitHub PagesのサブディレクトリURLに最適化 -->
+    <base href="/boywithdv-portfolio/">
     <title>boywithdv | Flutter Engineer</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Babel for in-browser transpilation of TSX (Fixes GitHub Pages MIME issue) -->
+    <!-- Babel Standalone: JSX/TSXをブラウザで実行可能にする -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
@@ -38,45 +39,79 @@
 <body class="bg-grid selection-indigo">
     <div id="loading-screen">
         <div class="spinner"></div>
-        <p style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #475569; letter-spacing: 0.2em;">DECODING SOURCE...</p>
+        <p id="loading-text" style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #475569; letter-spacing: 0.2em;">SYSTEM INITIALIZING...</p>
     </div>
     
     <div id="root"></div>
+
+    <!-- 診断用スクリプト: 読み込みが止まった場合にエラーを表示 -->
+    <script>
+        window.addEventListener('error', (e) => {
+            console.error("Runtime Error Detected:", e.message);
+            const loaderText = document.getElementById('loading-text');
+            if (loaderText) {
+                loaderText.innerText = "CRITICAL_ERROR: " + e.message;
+                loaderText.style.color = "#ef4444";
+            }
+        });
+
+        setTimeout(() => {
+            const root = document.getElementById('root');
+            if (root && root.innerHTML === "") {
+                console.warn("React mount timeout. Check if ES modules are being blocked by the server.");
+                const loader = document.getElementById('loading-screen');
+                if (loader) {
+                    loader.innerHTML = `
+                        <div style="text-align: center; color: #ef4444; font-family: 'JetBrains Mono', monospace; padding: 20px;">
+                            <p style="font-weight: bold;">[ SYSTEM_BOOT_FAILURE ]</p>
+                            <p style="font-size: 11px; margin-top: 10px;">React did not mount. This often happens on GitHub Pages if the base path is incorrect or ES modules are blocked.</p>
+                            <p style="font-size: 9px; color: #4b5563; margin-top: 20px;">CHECK BROWSER CONSOLE FOR DETAILS</p>
+                            <button onclick="location.reload()" style="margin-top: 20px; background: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">RETRY BOOT</button>
+                        </div>
+                    `;
+                }
+            }
+        }, 8000);
+    </script>
 
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useRef } from 'react';
         import ReactDOM from 'react-dom/client';
         import { GoogleGenAI } from "@google/genai";
 
-        // --- Services ---
+        // --- Core Intelligence ---
         const queryGemini = async (userPrompt) => {
-          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+          // process.env.API_KEY は実行環境から提供される前提
+          const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
+          const ai = new GoogleGenAI({ apiKey: apiKey });
+          
           try {
             const response = await ai.models.generateContent({
               model: "gemini-3-pro-preview",
-              contents: `Context: boywithdv's AI terminal. Query: ${userPrompt}`,
+              contents: `Query for boywithdv's AI: ${userPrompt}`,
               config: {
-                systemInstruction: "You are the AI representative of 'boywithdv', a Senior Flutter/Dart Engineer. Professional, technical, efficient.",
+                systemInstruction: "You are the AI representative of 'boywithdv', a top-tier Flutter/Dart Engineer. Concise, technical, and helpful. Always use developer-centric language.",
                 tools: [{ googleSearch: {} }],
               },
             });
-            return { role: 'assistant', text: response.text || "...", sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [] };
+            return { role: 'assistant', text: response.text || "No data received.", sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [] };
           } catch (e) { 
-            console.error(e);
-            return { role: 'assistant', text: "ERROR: Critical communication failure with AI Core." }; 
+            console.error("AI Core Error:", e);
+            return { role: 'assistant', text: "ERROR: Communication with Intelligence Core failed. Check API configuration." }; 
           }
         };
 
-        // --- Components ---
+        // --- UI Components ---
         const Navbar = ({ scrolled }) => (
-          <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-black/90 backdrop-blur-md py-4 border-b border-white/5 shadow-2xl' : 'bg-transparent py-8'}`}>
+          <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-slate-950/90 backdrop-blur-md py-4 border-b border-white/5 shadow-2xl' : 'bg-transparent py-8'}`}>
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
               <div className="font-bold text-xl flex items-center gap-3">
-                <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-sm">B</div>
-                <span className="tracking-tighter">boywithdv</span>
+                <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-sm shadow-lg shadow-indigo-600/30">B</div>
+                <span className="tracking-tighter font-black">boywithdv</span>
               </div>
-              <div className="flex gap-8 text-[10px] font-mono tracking-[0.2em] uppercase opacity-70">
-                <a href="#projects" className="hover:text-indigo-400 transition-colors">Portfolio</a>
+              <div className="flex gap-6 sm:gap-10 text-[9px] font-mono tracking-[0.3em] uppercase opacity-60">
+                <a href="#projects" className="hover:text-indigo-400 transition-colors">Works</a>
+                <a href="#terminal" className="hover:text-indigo-400 transition-colors">Terminal</a>
                 <a href="https://github.com/boywithdv" target="_blank" className="hover:text-indigo-400 transition-colors">GitHub</a>
               </div>
             </div>
@@ -87,16 +122,18 @@
           const [scrolled, setScrolled] = useState(false);
           const [input, setInput] = useState('');
           const [loading, setLoading] = useState(false);
-          const [messages, setMessages] = useState([{ role: 'assistant', text: "➜ boywithdv_os terminal initialized. System ready for queries." }]);
+          const [messages, setMessages] = useState([{ role: 'assistant', text: "➜ boywithdv_os terminal initialized. System ready for queries regarding Flutter architecture and project history." }]);
           const scrollRef = useRef(null);
 
           useEffect(() => {
-            const h = () => setScrolled(window.scrollY > 30);
-            window.addEventListener('scroll', h);
-            return () => window.removeEventListener('scroll', h);
+            const handleScroll = () => setScrolled(window.scrollY > 40);
+            window.addEventListener('scroll', handleScroll);
+            return () => window.removeEventListener('scroll', handleScroll);
           }, []);
 
-          useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, loading]);
+          useEffect(() => { 
+            if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; 
+          }, [messages, loading]);
 
           const onSend = async (e) => {
             e.preventDefault();
@@ -111,45 +148,47 @@
           };
 
           return (
-            <div className="min-h-screen flex flex-col">
+            <div className="min-h-screen flex flex-col bg-[#02040a]">
               <Navbar scrolled={scrolled} />
               
               <header className="min-h-screen flex flex-col justify-center px-6 md:px-20 relative">
-                <div className="absolute top-1/3 -left-20 w-80 h-80 bg-indigo-600/10 rounded-full blur-[100px] -z-10 animate-pulse"></div>
-                <p className="text-indigo-500 font-mono text-xs tracking-[0.4em] mb-6 uppercase opacity-60">Architecting Mobile Experiences</p>
-                <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-10 leading-[0.9]">
+                <div className="absolute top-1/4 -left-10 w-64 h-64 bg-indigo-600/10 rounded-full blur-[120px] -z-10"></div>
+                <div className="absolute bottom-1/4 -right-10 w-96 h-96 bg-purple-600/5 rounded-full blur-[150px] -z-10"></div>
+                
+                <p className="text-indigo-500 font-mono text-[10px] tracking-[0.5em] mb-8 uppercase opacity-60">Architecting High-Performance Mobile Apps</p>
+                <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-10 leading-[0.85]">
                   Flutter<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400">Engineering</span><br/>
-                  Defined.
+                  Mastery.
                 </h1>
-                <p className="text-slate-500 max-w-2xl text-lg md:text-2xl font-light leading-relaxed mb-12">
-                  Specializing in clean architecture, high-performance Dart patterns, and cross-platform mastery for enterprise-grade applications.
+                <p className="text-slate-500 max-w-xl text-lg md:text-2xl font-light leading-relaxed mb-12">
+                  Crafting seamless cross-platform experiences with clean architecture and Dart-powered precision.
                 </p>
-                <div>
-                  <a href="#projects" className="inline-block px-10 py-5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20">Explore Projects</a>
+                <div className="flex gap-4">
+                  <a href="#projects" className="inline-block px-10 py-5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-600/20">Explore Projects</a>
                 </div>
               </header>
 
-              <section id="projects" className="py-32 px-6 md:px-20 border-t border-white/5">
+              <section id="projects" className="py-40 px-6 md:px-20 border-t border-white/5">
                 <div className="max-w-7xl mx-auto">
-                  <div className="mb-20">
-                    <h2 className="text-[10px] font-mono text-indigo-500 uppercase tracking-[0.4em] mb-4">01 // Portfolio</h2>
-                    <h3 className="text-4xl font-bold tracking-tight">Recent Deployments</h3>
+                  <div className="mb-24">
+                    <h2 className="text-[10px] font-mono text-indigo-500 uppercase tracking-[0.5em] mb-4">01 // Portfolio</h2>
+                    <h3 className="text-5xl font-bold tracking-tight">Recent Architecture</h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                     {[
-                      {t: "Flutter Core", d: "Scalable architecture for multi-platform deployment.", tags: ["Dart", "BLoC"]},
-                      {t: "Custom UI Engine", d: "High-framerate visual components for fluid UX.", tags: ["Canvas", "Animation"]},
-                      {t: "DevOps Tooling", d: "Automated CI/CD pipelines for mobile lifecycles.", tags: ["Rust", "GitHub Actions"]}
+                      {t: "Flutter Core", d: "Scalable architecture for multi-platform deployment using BLoC.", tags: ["Dart", "BLoC", "Clean Arch"]},
+                      {t: "Custom UI Engine", d: "High-framerate visual components for fluid motion UX.", tags: ["Canvas", "Shaders"]},
+                      {t: "Cloud Sync Pro", d: "Real-time data synchronization with offline-first support.", tags: ["Firebase", "Hive"]}
                     ].map((p, i) => (
-                      <div key={i} className="p-10 bg-slate-900/40 border border-white/5 rounded-3xl hover:border-indigo-500/40 transition-all hover:-translate-y-2 group">
-                        <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500 mb-8 group-hover:scale-110 transition-transform">
-                          <i className="fas fa-terminal"></i>
+                      <div key={i} className="p-12 bg-slate-900/30 border border-white/5 rounded-[2rem] hover:border-indigo-500/40 transition-all duration-500 hover:-translate-y-3 group">
+                        <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 mb-10 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                          <i className="fas fa-code-branch text-xl"></i>
                         </div>
-                        <h4 className="font-bold text-xl mb-4">{p.t}</h4>
-                        <p className="text-slate-500 text-sm leading-relaxed mb-8">{p.d}</p>
-                        <div className="flex gap-2">
-                          {p.tags.map(tag => <span key={tag} className="text-[9px] font-mono px-2 py-1 bg-white/5 rounded border border-white/5 text-slate-600 uppercase">{tag}</span>)}
+                        <h4 className="font-bold text-2xl mb-6">{p.t}</h4>
+                        <p className="text-slate-500 text-base leading-relaxed mb-10">{p.d}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {p.tags.map(tag => <span key={tag} className="text-[9px] font-mono px-3 py-1.5 bg-white/5 rounded-full border border-white/5 text-slate-500 uppercase">{tag}</span>)}
                         </div>
                       </div>
                     ))}
@@ -157,44 +196,46 @@
                 </div>
               </section>
 
-              <section className="py-32 px-6 md:px-20 bg-slate-950/30">
+              <section id="terminal" className="py-40 px-6 md:px-20 bg-slate-950/30">
                 <div className="max-w-4xl mx-auto">
-                  <div className="text-center mb-16">
-                    <h2 className="text-[10px] font-mono text-indigo-500 uppercase tracking-[0.4em] mb-4">02 // Intelligence</h2>
-                    <h3 className="text-4xl font-bold tracking-tight">AI Assistant Terminal</h3>
+                  <div className="text-center mb-20">
+                    <h2 className="text-[10px] font-mono text-indigo-500 uppercase tracking-[0.5em] mb-4">02 // Intelligence</h2>
+                    <h3 className="text-5xl font-bold tracking-tight">AI Representative</h3>
                   </div>
-                  <div className="w-full bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden shadow-3xl h-[550px] flex flex-col font-mono text-xs">
-                    <div className="px-5 py-3 bg-white/5 border-b border-white/10 flex justify-between items-center">
-                      <div className="flex gap-2"><div className="w-2.5 h-2.5 rounded-full bg-red-500/40"></div><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/40"></div><div className="w-2.5 h-2.5 rounded-full bg-green-500/40"></div></div>
-                      <span className="opacity-30 tracking-widest uppercase text-[9px]">kernel_v3.1.2</span>
+                  <div className="w-full bg-[#0d1117] border border-white/10 rounded-3xl overflow-hidden shadow-3xl h-[600px] flex flex-col font-mono text-sm">
+                    <div className="px-6 py-4 bg-white/5 border-b border-white/10 flex justify-between items-center">
+                      <div className="flex gap-2.5"><div className="w-3 h-3 rounded-full bg-red-500/40"></div><div className="w-3 h-3 rounded-full bg-yellow-500/40"></div><div className="w-3 h-3 rounded-full bg-green-500/40"></div></div>
+                      <span className="opacity-30 tracking-[0.2em] uppercase text-[10px]">terminal_os.v3</span>
                     </div>
-                    <div ref={scrollRef} className="flex-grow p-8 overflow-y-auto space-y-6">
+                    <div ref={scrollRef} className="flex-grow p-10 overflow-y-auto space-y-8 scroll-smooth">
                       {messages.map((m, i) => (
                         <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                          <span className={`text-[9px] font-bold mb-2 opacity-50 uppercase ${m.role === 'user' ? 'text-indigo-400' : 'text-cyan-400'}`}>
-                            {m.role === 'user' ? 'guest@local' : 'system@core'}
+                          <span className={`text-[10px] font-bold mb-3 opacity-40 uppercase tracking-widest ${m.role === 'user' ? 'text-indigo-400' : 'text-cyan-400'}`}>
+                            {m.role === 'user' ? 'guest_identity' : 'system_core'}
                           </span>
-                          <div className={`max-w-[85%] leading-relaxed ${m.role === 'user' ? 'text-slate-400' : 'text-slate-200'}`}>
+                          <div className={`max-w-[90%] leading-relaxed text-base ${m.role === 'user' ? 'text-slate-400' : 'text-slate-200'}`}>
                             {m.text}
                           </div>
                           {m.sources && m.sources.length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
+                            <div className="mt-6 flex flex-wrap gap-3">
                               {m.sources.map((s, si) => s.web && (
-                                <a key={si} href={s.web.uri} target="_blank" className="text-[8px] px-2 py-1 bg-white/5 border border-white/10 rounded text-slate-500 hover:text-white transition-colors">{s.web.title}</a>
+                                <a key={si} href={s.web.uri} target="_blank" className="text-[9px] px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-slate-500 hover:text-white transition-colors flex items-center gap-2">
+                                  <i className="fas fa-link text-[8px]"></i> {s.web.title}
+                                </a>
                               ))}
                             </div>
                           )}
                         </div>
                       ))}
-                      {loading && <div className="text-indigo-500 animate-pulse">_ PROCESSING...</div>}
+                      {loading && <div className="text-indigo-500 animate-pulse font-bold tracking-widest">_ PROCESSING_COMMAND...</div>}
                     </div>
-                    <form onSubmit={onSend} className="p-6 border-t border-white/10 flex gap-4 bg-white/[0.02]">
-                      <span className="text-indigo-500">$</span>
+                    <form onSubmit={onSend} className="p-8 border-t border-white/10 flex gap-5 bg-white/[0.02]">
+                      <span className="text-indigo-500 font-bold">$</span>
                       <input 
-                        className="bg-transparent border-none focus:ring-0 w-full text-slate-300 placeholder:opacity-20" 
+                        className="bg-transparent border-none focus:ring-0 w-full text-slate-200 placeholder:opacity-20 text-base" 
                         value={input} 
                         onChange={e => setInput(e.target.value)}
-                        placeholder="query intelligence core..."
+                        placeholder="ENTER_COMMAND_OR_QUERY..."
                         disabled={loading}
                       />
                     </form>
@@ -202,25 +243,27 @@
                 </div>
               </section>
 
-              <footer className="py-20 text-center border-t border-white/5 bg-black/50">
-                <div className="flex justify-center gap-8 text-slate-600 mb-8">
-                  <a href="https://github.com/boywithdv" target="_blank" className="hover:text-white transition-colors"><i className="fab fa-github text-xl"></i></a>
-                  <a href="#" className="hover:text-white transition-colors"><i className="fab fa-linkedin text-xl"></i></a>
-                  <a href="mailto:hello@boywithdv.me" className="hover:text-white transition-colors"><i className="fas fa-envelope text-xl"></i></a>
+              <footer className="py-24 text-center border-t border-white/5 bg-black/80">
+                <div className="flex justify-center gap-10 text-slate-600 mb-10">
+                  <a href="https://github.com/boywithdv" target="_blank" className="hover:text-white transition-all hover:scale-110"><i className="fab fa-github text-2xl"></i></a>
+                  <a href="#" className="hover:text-white transition-all hover:scale-110"><i className="fab fa-linkedin text-2xl"></i></a>
+                  <a href="mailto:hello@boywithdv.me" className="hover:text-white transition-all hover:scale-110"><i className="fas fa-envelope text-2xl"></i></a>
                 </div>
-                <p className="text-slate-700 font-mono text-[9px] tracking-[0.6em] uppercase">© 2024 BOYWITHDV • SYSTEMS NOMINAL</p>
+                <p className="text-slate-700 font-mono text-[10px] tracking-[0.6em] uppercase">© 2024 BOYWITHDV • ALL SYSTEMS NOMINAL</p>
               </footer>
             </div>
           );
         };
 
+        // Render Application
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
         
+        // Hide loader after mount
         const loader = document.getElementById('loading-screen');
         if (loader) {
           loader.style.opacity = '0';
-          setTimeout(() => loader.remove(), 500);
+          setTimeout(() => loader.remove(), 600);
         }
     </script>
 </body>
